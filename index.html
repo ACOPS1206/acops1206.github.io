@@ -291,7 +291,13 @@ a.internal-link {
   word-break: break-all;
   user-select: text; /* This line was added */
 }
-    
+
+hr {
+  border: none; /* 기존 스타일 초기화 */
+  border-top: 2px solid #555555; /* 1px 두께와 특정 회색 적용 */
+  height: 0; 
+}
+
 </style>
 </head>
 
@@ -362,7 +368,7 @@ and, I'm from south korea. so my translation can be missing or wrong sometime...
 <script>
 function simpleMarkdown(md) {
     md = md.replace(/\r\n/g, '\n'); 
-    
+
     const codeBlocks = [];
 
     // 1. (FIXED) 코드 블록을 먼저 추출하고 토큰으로 대체
@@ -374,7 +380,7 @@ function simpleMarkdown(md) {
                     <path d="M5.75 1a.75.75 0 0 0-.75.75v1.5h-.75A1.75 1.75 0 0 0 2.5 5v8.25c0 .966.784 1.75 1.75 1.75h5.5A1.75 1.75 0 0 0 11.5 13.25V5A1.75 1.75 0 0 0 9.75 3.25h-.75v-1.5A.75.75 0 0 0 8.25 1h-2.5ZM3.5 5A.25.25 0 0 1 3.75 4.75h5.5a.25.25 0 0 1 .25.25v8.25a.25.25 0 0 1-.25.25h-5.5A.25.25 0 0 1 3.5 13.25V5ZM6 2.5v.75h3V2.5h-3Z"></path>
                 </svg>
             </button>`;
-        
+
         const blockHtml = `\n<div class="code-block-wrapper">${copyButton}<pre><code class="language-${lang}">${escapedCode}</code></pre></div>\n`;
         codeBlocks.push(blockHtml);
         return `\n__CODE_BLOCK_${codeBlocks.length - 1}__\n`;
@@ -385,7 +391,7 @@ function simpleMarkdown(md) {
 
     // Horizontal Rules
     html = html.replace(/\n(---|\*\*\*)\n/g, "\n<hr>\n");
-    
+
     // Headers (h1-h6)
     html = html.replace(/\n(######) (.*)/g, "\n<h6>$2</h6>")
                .replace(/\n(#####) (.*)/g, "\n<h5>$2</h5>")
@@ -420,16 +426,16 @@ function simpleMarkdown(md) {
     html = html.replace(/((?:\n<li class="ul-item">.*<\/li>)+)/g, "\n<ul>$1\n</ul>")
                .replace(/((?:\n<li class="ol-item">.*<\/li>)+)/g, "\n<ol>$1\n</ol>")
                .replace(/((?:\n<li class="task-list-item.*<\/li>)+)/g, "\n<ul class=\"task-list\">$1\n</ul>");
-    
+
     // 3. (FIXED) 단락(<p>) 및 인라인 요소 처리
     html = html.split('\n').map(line => {
         const trimmed = line.trim();
         if (trimmed === "") return "";
-        
+
         if (/^__CODE_BLOCK_/.test(trimmed) || /^<(h[1-6]|ul|ol|li|pre|code|blockquote|hr|img|div)/.test(trimmed) || /^<\/(ul|ol|blockquote)>$/.test(trimmed)) {
             return line; 
         }
-        
+
         line = line.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank">$1</a>')
                    .replace(/\[\[(.*?)\]\]/g, '<a href="#" class="internal-link">$1</a>')
                    .replace(/` + '`(.*?)`' + `/gim, '<code>$1</code>')
@@ -437,10 +443,10 @@ function simpleMarkdown(md) {
                    .replace(/==(.*?)==/gim, "<mark>$1</mark>")
                    .replace(/\*\*(.*?)\*\*/gim, "<b>$1</b>")
                    .replace(/\*(.*?)\*/gim, "<i>$1</i>");
-                   
+
         return `<p>${line}</p>`;
     }).join('\n');
-    
+
     // 4. (FIXED) 코드 블록 토큰을 다시 HTML로 복원
     html = html.replace(/<p>__CODE_BLOCK_(\d+)__<\/p>|__CODE_BLOCK_(\d+)__/g, (match, p1, p2) => {
         const index = p1 || p2;
@@ -462,7 +468,7 @@ function highlightCode() {
     if (block.querySelector('span.hljs-keyword')) {
         return;
     }
-    
+
     block.innerHTML = block.innerHTML
       .replace(/("[^"]*"|'[^']*')/g, '<span class="hljs-string">$1</span>')
       .replace(/(def|class|return|import|from|if|else|for|while|print)/g, '<span class="hljs-keyword">$1</span>')
@@ -500,7 +506,7 @@ editor.addEventListener('keydown', function(e) {
         e.preventDefault();
         const before = text.substring(0, start);
         const after = text.substring(end);
-        
+
         if (start !== end) {
             const selected = text.substring(start, end);
             this.value = before + e.key + selected + pairs[e.key] + after;
@@ -558,7 +564,7 @@ preview.addEventListener('click', function(e) {
     if (btn) {
         e.preventDefault();
         const code = btn.nextElementSibling.querySelector('code').innerText;
-        
+
         navigator.clipboard.writeText(code).then(() => {
             btn.title = "Copied!";
             btn.style.color = "var(--code-string)";
@@ -598,7 +604,7 @@ document.getElementById('copy-html-btn').addEventListener('click', function(e) {
 function renderMarkdown() {
   // 1. 마크다운을 HTML 조각으로 변환
   const bodyHtml = simpleMarkdown(editor.value);
-  
+
   // 2. 상단 미리보기(preview) 패널은 그대로 HTML 조각으로 채움
   preview.innerHTML = bodyHtml;
 
@@ -606,7 +612,7 @@ function renderMarkdown() {
   // 3-1. 메인 스타일 시트 내용을 '안전하게' 가져옴
   const mainStylesEl = document.getElementById('main-obsidian-styles');
   const mainStyles = mainStylesEl ? mainStylesEl.textContent : '/* 🎨 메인 스타일을 찾지 못했습니다 */';
-  
+
   // 3-2. 사용자가 입력한 커스텀 CSS 스니펫을 가져옴
   const customStyles = cssSnippet.value;
 
@@ -666,7 +672,7 @@ window.addEventListener('load', () => {
 
   // [수정] 기본 CSS 스니펫을 로드 시 즉시 적용합니다.
   applyBtn.click(); 
-  
+
   renderMarkdown();
 });
 
